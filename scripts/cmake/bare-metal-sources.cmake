@@ -149,7 +149,7 @@ if (DEFINED ARMCLANG_DEBUG_DWARF_LEVEL)
     set(OPTIONAL_FLAGS "${OPTIONAL_FLAGS} -gdwarf-${ARMCLANG_DEBUG_DWARF_LEVEL}")
 endif()
 
-set(COMPILER_FLAGS              "${TENSORFLOW_LITE_MICRO_FLAG} ${PROFILING_OPT} ${OPTIONAL_FLAGS} --target=arm-arm-none-eabi -mcpu=cortex-m55 -mfloat-abi=hard -mthumb -mlittle-endian -fvectorize -O3")
+set(COMPILER_FLAGS              "${TENSORFLOW_LITE_MICRO_FLAG} ${PROFILING_OPT} ${OPTIONAL_FLAGS} -mcpu=cortex-m55 -mfloat-abi=hard -mthumb -mlittle-endian -O3")
 # For some reason, cmake doesn't pass the c++ standard flag, adding it manually
 set(CMAKE_CXX_FLAGS             "${COMPILER_FLAGS} -std=c++11" CACHE INTERNAL "")
 set(CMAKE_C_FLAGS               "${COMPILER_FLAGS}" CACHE INTERNAL "")

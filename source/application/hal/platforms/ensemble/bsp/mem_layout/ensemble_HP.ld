@@ -15,16 +15,20 @@
  * limitations under the License.
  */
 
-__STACK_SIZE = 0x00060000;
+__STACK_SIZE = 0x00010000;
 __HEAP_SIZE  = 0x000f0000;
+__ROM_BASE = 0x80100000;
+__ROM_SIZE = 0x00400000;
 
 /* System memory brief */
 MEMORY
 {
-  ITCM  (rx)  : ORIGIN = 0x00000000, LENGTH = 0x00040000
+  ITCM  (rxw) : ORIGIN = 0x00000000, LENGTH = 0x00040000
   DTCM  (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00100000
   SRAM0 (rwx) : ORIGIN = 0x02000000, LENGTH = 0x00400000
   SRAM1 (rwx) : ORIGIN = 0x08000000, LENGTH = 0x00280000
+  MRAM  (rx)  : ORIGIN = __ROM_BASE, LENGTH = __ROM_SIZE
+  TOC   (r)   : ORIGIN = 0x8057FFF0, LENGTH = 16
 }
 
 /* Linker script to place sections and symbol values. Should be used together
@@ -61,7 +65,7 @@ ENTRY(Reset_Handler)
 
 SECTIONS
 {
-  .text.at_itcm :
+  .text.at_mram :
   {
     KEEP(*(.vectors))
     *(.text*)
@@ -83,87 +87,15 @@ SECTIONS
     *(SORT(.dtors.*))
     *(.dtors)
 
+    *(.rodata*)
+    . = ALIGN(4);
+    * (npu_driver_version)
+    . = ALIGN(4);
+    * (npu_driver_arch_version)
+    . = ALIGN(4);
+
     KEEP(*(.eh_frame*))
-  } > ITCM
 
-  .ARM.extab.at_itcm :
-  {
-    *(.ARM.extab* .gnu.linkonce.armextab.*)
-  } > ITCM
-
-  __exidx_start = .;
-  .ARM.exidx.at_itcm :
-  {
-    *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-  } > ITCM
-  __exidx_end = .;
-
-  .zero.table.at_itcm :
-  {
-    . = ALIGN(4);
-    __zero_table_start__ = .;
-
-    LONG (__bss_start__)
-    LONG ((__bss_end__ - __bss_start__)/4) /* Size is in 32-bit words */
-
-    __zero_table_end__ = .;
-  } > ITCM
-
-  .copy.table.at_itcm :
-  {
-    . = ALIGN(4);
-    __copy_table_start__ = .;
-
-    /* Section to be copied - part 1: any data to be placed in BRAM */
-    LONG (__etext)
-    LONG (__data_start__)
-    LONG ((__data_end__ - __data_start__)/4) /* Size is in 32-bit words */
-
-    /* Section to be copied - part 2: RO data for for DTCM */
-    LONG (__etext2)
-    LONG (__ro_data_start__)
-    LONG ((__ro_data_end__ - __ro_data_start__)/4) /* Size is in 32-bit words */
-
-    __copy_table_end__ = .;
-  } > ITCM
-
-  __itcm_total = ALIGN(4);
-
-  ASSERT( __itcm_total < (ORIGIN(ITCM) + LENGTH(ITCM)), "ITCM overflow")
-
-  .sram :
-  {
-    . = ALIGN(16);
-    *(.bss.NoInit.activation_buf)
-    . = ALIGN(16);
-  } > SRAM0 AT > SRAM0
-
-  .bss :
-  {
-    . = ALIGN(4);
-    __bss_start__ = .;
-    *(.bss)
-    *(.bss.*)
-    *(COMMON)
-    . = ALIGN(4);
-    __bss_end__ = .;
-  } > DTCM AT > DTCM
-
-  .stack (ORIGIN(DTCM) + LENGTH(DTCM) - __STACK_SIZE) (COPY) :
-  {
-    . = ALIGN(8);
-    __StackLimit = .;
-    . = . + __STACK_SIZE;
-    . = ALIGN(8);
-    __StackTop = .;
-  } > DTCM
-  PROVIDE(__stack = __StackTop);
-  ASSERT(
-    (__STACK_SIZE + __bss_end__ - __bss_start__) <= LENGTH(DTCM),
-    "DTCM overflow")
-
-  .ddr.at_ddr :
-  {
     /* __attribute__((aligned(16))) is not handled by the CMSIS startup code.
      * Force the alignment here as a workaround */
     . = ALIGN(16);
@@ -173,18 +105,65 @@ SECTIONS
     . = ALIGN (16);
     *(labels)
     . = ALIGN (16);
-    *(activation_buf)
-    . = ALIGN (16);
-  } > DDR AT > DDR
+
+  } > MRAM
+
+  .ARM.extab :
+  {
+    . = ALIGN(16);
+    *(.ARM.extab* .gnu.linkonce.armextab.*)
+    . = ALIGN(16);
+  } > MRAM
+
+  __exidx_start = .;
+  .ARM.exidx :
+  {
+    . = ALIGN(16);
+    *(.ARM.exidx* .gnu.linkonce.armexidx.*)
+    . = ALIGN(16);
+  } > MRAM
+  __exidx_end = .;
+
+  .zero.table :
+  {
+    . = ALIGN(16);
+    __zero_table_start__ = .;
+
+    LONG (__bss_start__)
+    LONG ((__bss_end__ - __bss_start__)/4) /* Size is in 32-bit words */
+
+    __zero_table_end__ = .;
+    . = ALIGN(16);
+  } > MRAM
+
+  .copy.table :
+  {
+    . = ALIGN(16);
+    __copy_table_start__ = .;
+    /*__copy_table_end__ = .;*/
+
+    /* Section to be copied - part 1: any data to be placed in BRAM */
+    LONG (__etext)
+    LONG (__data_start__)
+    LONG ((__data_end__ - __data_start__)/4) /* Size is in 32-bit words */
+
+    __copy_table_end__ = .;
+
+    . = ALIGN(16);
+  } > MRAM
+
+  __mram_total = ALIGN(16);
+
+  ASSERT( __mram_total < (ORIGIN(MRAM) + LENGTH(MRAM)), "MRAM overflow")
 
   /**
    * Location counter can end up 2byte aligned with narrow Thumb code but
    * __etext is assumed by startup code to be the LMA of a section in DTCM
    * which must be 4byte aligned
    */
-  __etext = ALIGN (4);
+  __etext = ALIGN (16);
 
-  .bram.at_ddr :  AT (__etext)
+  .bram.at_dtcm : 
   {
     __data_start__ = .;
     *(vtable)
@@ -208,24 +187,21 @@ SECTIONS
     . = ALIGN(4);
 
     __data_end__ = .;
-  } > SRAM0
+  } > DTCM AT > MRAM
 
-  __etext2 = __etext + (__data_end__ - __data_start__);
-
-  .data.at_ddr : AT (__etext2)
+  .stack (ORIGIN(DTCM) + LENGTH(DTCM) - __STACK_SIZE) (COPY) :
   {
-    . = ALIGN(4);
-    __ro_data_start__ = .;
+    . = ALIGN(8);
+    __StackLimit = .;
+    . = . + __STACK_SIZE;
+    . = ALIGN(8);
+    __StackTop = .;
+  } > DTCM
+  PROVIDE(__stack = __StackTop);
 
-    *(.rodata*)
-    . = ALIGN(4);
-    * (npu_driver_version)
-    . = ALIGN(4);
-    * (npu_driver_arch_version)
-    . = ALIGN(4);
-
-    __ro_data_end__ = .;
-  } > SRAM1
+  ASSERT(
+    (__STACK_SIZE + __bss_end__ - __bss_start__ + __data_start__ - __data_end__) <= LENGTH(DTCM),
+    "DTCM overflow")
 
   .heap (COPY) :
   {
@@ -237,9 +213,47 @@ SECTIONS
     __HeapLimit = .;
   } > SRAM1
 
+  .bss :
+  {
+    . = ALIGN(4);
+    __bss_start__ = .;
+    *(.bss)
+    *(.bss.*)
+    *(COMMON)
+    . = ALIGN(4);
+    __bss_end__ = .;
+  } > SRAM0
+
+  .data.at_sram0 :
+  {
+    . = ALIGN(16);
+    * (camera_frame_buf)              /* Camera Frame Buffer */
+    * (camera_frame_bayer_to_rgb_buf) /* (Optional) Camera Frame Buffer for Bayer to RGB Convertion.*/
+    . = ALIGN(16);
+  } > SRAM0 AT > SRAM0
+
+  .data.at_sram1 : 
+  {
+    . = ALIGN(16);
+    *(lcd_image_buf)
+    *(.bss.NoInit.activation_buf)
+
+  } > SRAM1 AT > SRAM1
+/*
   ASSERT (
       (__ro_data_end__ - __ro_data_start__)
     + (__data_end__  - __data_start__)
     + __HEAP_SIZE <= LENGTH(SRAM1),
     "SRAM1 overflow")
+    */
+
+  /* Magic number (0xFFA0A710) + (0 = A32_0, 1 = A32_1, 2 = CM55HP, 3 = CM55HE) */
+  .mini_toc :
+  {
+  	LONG (0xffffffff)
+  	LONG (0xFFA0A710 + 2)	
+  	LONG (__ROM_BASE)
+  	LONG (0)
+  } > TOC
+
 }
