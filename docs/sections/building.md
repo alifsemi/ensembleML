@@ -17,6 +17,9 @@
       - [Configuring with custom TPIP dependencies](#configuring-with-custom-tpip-dependencies)
     - [Configuring native unit-test build](#configuring-native-unit_test-build)
     - [Configuring the build for simple-platform](#configuring-the-build-for-simple_platform)
+    - [Configuring the build for Alif Ensemble platform](#configuring-the-build-for-Alif-Ensemble-platform)
+      - [Configuring for the image classification demo](#configuring-for-the-image-classification-demo)
+      - [Configuring for the keyword spotting demo](#configuring-for-the-keyword-spotting-demo)
     - [Building the configured project](#building-the-configured-project)
   - [Building timing adapter with custom options](#building-timing-adapter-with-custom-options)
   - [Add custom inputs](#add-custom-inputs)
@@ -424,6 +427,48 @@ Again, if using `Arm Compiler`, use:
 cmake .. \
     -DTARGET_PLATFORM=simple_platform \
     -DCMAKE_TOOLCHAIN_FILE=scripts/cmake/toolchains/bare-metal-armclang.cmake
+```
+
+### Configuring the build for Alif Ensemble platform
+
+#### Configuring for the image classification demo 
+
+On Linux, if using `Arm GNU embedded toolchain`, execute the following command to build the application to run the image classification demo on the CM-55 HP core:
+
+```commandline
+cmake -DTARGET_PLATFORM=ensemble \
+    -DTARGET_SUBSYSTEM=RTSS-HP \
+    -DCMAKE_TOOLCHAIN_FILE=scripts/cmake/toolchains/bare-metal-gcc.cmake \
+    -DUSE_CASE_BUILD=img_class \
+    -Dimg_class_MODEL_TFLITE_PATH=resources/img_class/model/mobilenet_softmax_v2_1.0_224_uint8_vela_H256.tflite \
+    -Dimg_class_FILE_PATH=resources/img_class/samples/cat.bmp \
+    -DCMAKE_BUILD_TYPE=Debug -DLOG_LEVEL=LOG_LEVEL_DEBUG ..
+```
+
+Using `Arm Compiler`:
+
+```commandline
+cmake -DTARGET_PLATFORM=ensemble \
+    -DTARGET_SUBSYSTEM=RTSS-HP \
+    -DCMAKE_TOOLCHAIN_FILE=scripts/cmake/toolchains/bare-metal-armclang.cmake \
+    -DUSE_CASE_BUILD=img_class \
+    -Dimg_class_MODEL_TFLITE_PATH=resources/img_class/model/mobilenet_softmax_v2_1.0_224_uint8_vela_H256.tflite \
+    -Dimg_class_FILE_PATH=resources/img_class/samples/cat.bmp \
+    -DCMAKE_BUILD_TYPE=Debug -DLOG_LEVEL=LOG_LEVEL_DEBUG ..
+```
+
+#### Configuring for the keyword spotting demo
+
+On Linux, if using `Arm compiler`, execute the following command to build the application to run on the keyword spotting demo on the CM-55 HP core:
+
+```commandline
+cmake -DTARGET_PLATFORM=ensemble \
+    -DTARGET_SUBSYSTEM=RTSS-HP \
+    -DCMAKE_TOOLCHAIN_FILE=scripts/cmake/toolchains/bare-metal-armclang.cmake \
+    -DUSE_CASE_BUILD=kws \
+    -Dkws_MODEL_TFLITE_PATH=resources/kws/model/ds_cnn_large_int8_vela_H256.tflite \
+    -Dkws_FILE_PATH=resources/kws/samples/down.wav \
+    -DCMAKE_BUILD_TYPE=Debug -DLOG_LEVEL=LOG_LEVEL_DEBUG ..
 ```
 
 ### Building the configured project
