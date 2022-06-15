@@ -88,10 +88,18 @@ void sleep_or_wait_msec(uint32_t msec)
 	ARM_PMU_CYCCNT_Reset();
 
 	uint32_t sleeptime = msec * (SystemCoreClock / 1000);
-	while (ARM_PMU_Get_CCNTR() < sleeptime)
-		;
+	while (ARM_PMU_Get_CCNTR() < sleeptime);
 
 #endif /* RTOS_AVAILABLE */
+}
+
+void sleep_or_wait_usec(uint32_t usec)
+{
+	ARM_PMU_CYCCNT_Reset();
+	ARM_PMU_Get_CCNTR();
+
+	uint32_t sleeptime = usec * (SystemCoreClock / 1000000);
+	while (ARM_PMU_Get_CCNTR() < sleeptime);
 }
 
 /************************ (C) COPYRIGHT ALIF SEMICONDUCTOR *****END OF FILE****/

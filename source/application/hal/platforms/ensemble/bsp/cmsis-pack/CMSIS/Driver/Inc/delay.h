@@ -50,6 +50,8 @@ extern "C"
  */
 extern void sleep_or_wait_msec(uint32_t msec);
 
+extern void sleep_or_wait_usec(uint32_t usec);
+
 #ifdef  __cplusplus
 }
 #endif

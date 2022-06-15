@@ -40,18 +40,18 @@ void SetupLEDs()
 	// Green LED
 	Driver_GPIO1.Initialize(PIN_NUMBER_15,NULL);
 	Driver_GPIO1.PowerControl(PIN_NUMBER_15,  ARM_POWER_FULL);
+	Driver_GPIO1.SetValue(PIN_NUMBER_15, GPIO_PIN_OUTPUT_STATE_LOW);
 	Driver_GPIO1.SetDirection(PIN_NUMBER_15, GPIO_PIN_DIRECTION_OUTPUT);
 	PINMUX_Config (PORT_NUMBER_1, PIN_NUMBER_15, PINMUX_ALTERNATE_FUNCTION_0);
-	PINPAD_Config (PORT_NUMBER_1, PIN_NUMBER_15, (0x09 | PAD_FUNCTION_OUTPUT_DRIVE_STRENGTH_04_MILI_AMPS)); //SDA
-	//Driver_GPIO1.SetValue(PIN_NUMBER_15, GPIO_PIN_OUTPUT_STATE_LOW);
+	PINPAD_Config (PORT_NUMBER_1, PIN_NUMBER_15, PAD_FUNCTION_READ_ENABLE);
 
 	// Red LED
 	Driver_GPIO1.Initialize(PIN_NUMBER_14,NULL);
 	Driver_GPIO1.PowerControl(PIN_NUMBER_14,  ARM_POWER_FULL);
+	Driver_GPIO1.SetValue(PIN_NUMBER_14, GPIO_PIN_OUTPUT_STATE_LOW);
 	Driver_GPIO1.SetDirection(PIN_NUMBER_14, GPIO_PIN_DIRECTION_OUTPUT);
 	PINMUX_Config (PORT_NUMBER_1, PIN_NUMBER_14, PINMUX_ALTERNATE_FUNCTION_0);
-	PINPAD_Config (PORT_NUMBER_1, PIN_NUMBER_14, (0x09 | PAD_FUNCTION_OUTPUT_DRIVE_STRENGTH_04_MILI_AMPS)); //SDA
-	//Driver_GPIO1.SetValue(PIN_NUMBER_14, GPIO_PIN_OUTPUT_STATE_LOW);
+	PINPAD_Config (PORT_NUMBER_1, PIN_NUMBER_14, PAD_FUNCTION_READ_ENABLE);
 }
 
 uint32_t GetCoreClock(void)
@@ -73,8 +73,12 @@ void GLCD_Initialize(void)
 		sleep_or_wait_msec(300);
 		test--;
 	}
+
+	extern void hw_disp_init();
+	hw_disp_init();
+
 	static volatile int dinit = 0;
-	dinit = Display_initialization(&lcd_image[0][0][0]);
+	//dinit = Display_initialization(&lcd_image[0][0][0]);
 	if (dinit != 0) {
 		while(1) {
 			Driver_GPIO1.SetValue(PIN_NUMBER_15, GPIO_PIN_OUTPUT_STATE_LOW);

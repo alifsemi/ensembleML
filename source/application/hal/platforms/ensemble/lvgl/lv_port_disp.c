@@ -43,16 +43,21 @@
 #include "image_processing.h"
 
 #define MY_DISP_HOR_RES 240
-#define MY_DISP_VER_RES 400
+#define MY_DISP_VER_RES 416
 #define MY_DISP_BUFFER	(MY_DISP_VER_RES * 10)
 
 extern uint8_t lcd_image[DIMAGE_Y][DIMAGE_X][RGB_BYTES];
 
-void put_px(int32_t x, int32_t y, lv_color_t * color_p)
+__STATIC_INLINE put_px(int32_t x, int32_t y, lv_color_t * color_p)
 {
-	x *= 2;
-	y *= 2;
-
+	x <<= 1;
+	y <<= 1;
+#if 1
+	memcpy(&lcd_image[y  ][x  ][0], color_p, RGB_BYTES);
+	memcpy(&lcd_image[y  ][x+1][0], color_p, RGB_BYTES);
+	memcpy(&lcd_image[y+1][x  ][0], color_p, RGB_BYTES);
+	memcpy(&lcd_image[y+1][x+1][0], color_p, RGB_BYTES);
+#else
 	lcd_image[y][x][0] = (uint8_t) color_p->ch.blue;
 	lcd_image[y][x][1] = (uint8_t) color_p->ch.red;
 	lcd_image[y][x][2] = (uint8_t) color_p->ch.green;
@@ -68,6 +73,7 @@ void put_px(int32_t x, int32_t y, lv_color_t * color_p)
 	lcd_image[y+1][x+1][0] = (uint8_t) color_p->ch.blue;
 	lcd_image[y+1][x+1][1] = (uint8_t) color_p->ch.red;
 	lcd_image[y+1][x+1][2] = (uint8_t) color_p->ch.green;
+#endif
 }
 
 static void lv_disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
@@ -85,7 +91,7 @@ static void lv_disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_c
 
 static void lv_clean_dcache_cb(lv_disp_drv_t * disp_drv) {
 	/* Example for Cortex-M (CMSIS) */
-	SCB_CleanInvalidateDCache();
+	SCB_CleanDCache();
 	(void)(disp_drv);
 }
 

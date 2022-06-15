@@ -23,7 +23,7 @@
 
 // Display dimensions
 #define DIMAGE_X		480
-#define DIMAGE_Y		800
+#define DIMAGE_Y		832
 #define DISPLAY_BUFFER_SIZE  (DIMAGE_X*DIMAGE_Y*RGB_BYTES)
 
 #define TIFF_HDR_NUM_ENTRY 8
