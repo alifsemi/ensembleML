@@ -26,7 +26,7 @@
    ---------------------------------------------------------------------------*/
 
 // Uncomment this to disable traces to UART
-//#define DISABLE_UART_TRACE
+#define DISABLE_UART_TRACE
 
 #include "Driver_USART.h"
 
