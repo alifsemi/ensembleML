@@ -25,6 +25,7 @@
 #include "RTE_Components.h"
 #include "Driver_PINMUX_AND_PINPAD.h"
 #include "Driver_GPIO.h"
+#include "services_main.h"
 
 #include CMSIS_device_header
 
@@ -32,6 +33,21 @@
 
 uint32_t volatile ms_ticks = 0;
 static uint64_t cpu_cycle_count = 0;
+
+static void MHU_msg_received(void* data);
+
+// Enables copying the vector table to RAM for dynamic addition of Services interrupt vectors.
+// Can be commented out if static vector table is modified or the application is executed
+// from RAM.
+#define COPY_VECTOR_TABLE
+
+#ifdef COPY_VECTOR_TABLE
+#include <system_M55_HP.h>
+#include "M55_HP.h"
+
+extern const VECTOR_TABLE_Type __VECTOR_TABLE[496];
+static VECTOR_TABLE_Type MyVectorTable[496] __attribute__((aligned (2048)));
+#endif
 
 int Init_SysTick(void);
 
@@ -93,7 +109,19 @@ extern ARM_DRIVER_GPIO Driver_GPIO3;
 
 int system_init(void)
 {
-
+#ifdef COPY_VECTOR_TABLE
+    // Copy vector table to memory. Has to be done here in tx_application_define as
+    // tx_kernel_enter that's called from main does low level initialization that
+    // manipulates SCB->VTOR value.
+    for(int i = 0; i < 496; i++)
+    {
+        MyVectorTable[i] = __VECTOR_TABLE[i];
+    }
+    // Set the new vector table into use.
+    SCB->VTOR = (uint32_t)(&MyVectorTable[0]);
+#endif
+    tracelib_init("[HP]");
+    services_init(MHU_msg_received);
     /* UART init - will enable valid use of printf (stdout
      * re-directed at this UART (UART0) */
     //UartStdOutInit();
@@ -130,6 +158,26 @@ void system_name(char* name, size_t size)
 static bool do_inference_once = true;
 static bool last_btn0 = false;
 static bool last_btn1 = false;
+
+void MHU_msg_received(void* data)
+{
+    m55_data_payload_t* payload = (m55_data_payload_t*)data;
+
+    switch(payload->id)
+    {
+        case 2:
+            if (!strcmp(payload->msg, "go")) {
+                // Switch single shot and continuous inference mode
+               do_inference_once = !do_inference_once;
+            }
+
+            break;
+        case 3:
+            break;
+        default:
+            break;
+    }
+}
 
 bool run_requested(void)
 {

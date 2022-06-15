@@ -92,7 +92,9 @@ elseif (TARGET_PLATFORM STREQUAL ensemble)
          set(LINKER_SCRIPT_NAME  "${TARGET_PLATFORM}_HP")
          set(ENSEMBLE_CORE       "M55_HP")
     endif ()
+    
     set(ENSEMBLE_CORE_FLAG  "-D${ENSEMBLE_CORE}")
+    
     include(${MEM_PROFILES_SRC_DIR}/${TARGET_PLATFORM}.cmake)
     set(OPTIONAL_FLAGS          "${OPTIONAL_FLAGS} ${ENSEMBLE_PLATFORM_FLAG} ${ENSEMBLE_CORE_FLAG}")
 else ()
@@ -176,6 +178,8 @@ if (TARGET_PLATFORM STREQUAL ensemble)
    # Include directories:
    set(PLAT_INCLUDE_DIRS
        ${PLAT_BSP_INCLUDES}
+       ${PLAT_HAL}/services_lib/drivers/include
+       ${PLAT_HAL}/services_lib/include       
        ${PLAT_HAL}/utils/include
        ${PLAT_HAL}/images/include
        ${PLAT_HAL}/data_presentation/lcd/include
@@ -200,6 +204,8 @@ if (TARGET_PLATFORM STREQUAL ensemble)
        "${PLAT_HAL}/viewfinder/image_display/*.c"
        "${PLAT_HAL}/viewfinder/image_processing/*.c"
        "${PLAT_HAL}/lvgl/*.c"
+       "${PLAT_HAL}/services_lib/drivers/src/*.c"
+       "${PLAT_HAL}/services_lib/services_lib/*.c"
 
        # Low level HAL sources - these enable interaction with
        # the actual hardware

@@ -15,12 +15,15 @@
  * limitations under the License.
  */
 
-#include "uart_stdout.h"
-#include "bsp_core_log.h"
+#if !defined(USE_SEMIHOSTING)
 
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <RTE_Components.h>
+#include CMSIS_device_header
+
+#include "uart_tracelib.h"
 
 #if defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6100100)
 /* Arm compiler re-targeting */
@@ -63,6 +66,11 @@ extern FILEHANDLE _open(const char * /*name*/, int /*openmode*/);
 const char __stdin_name[] __attribute__((aligned(4)))  = "STDIN";
 const char __stdout_name[] __attribute__((aligned(4))) = "STDOUT";
 const char __stderr_name[] __attribute__((aligned(4))) = "STDERR";
+#define UNUSED(x) (void)(x)
+
+#define RETARGET_BUF_MAX 128
+static char retarget_buf[RETARGET_BUF_MAX];
+static uint32_t retarget_buf_len = 0;
 
 void _ttywrch(int ch) {
     (void)fputc(ch, stdout);
@@ -197,7 +205,11 @@ char *RETARGET(_command_string)(char *cmd, int len)
 
 void RETARGET(_exit)(int return_code)
 {
-    //UartEndSimulation(return_code);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnonnull"
+    fputc(0x0A, (FILE*)0);
+#pragma clang diagnostic pop
+    while(1);
 }
 
 int system(const char *cmd)
@@ -244,9 +256,34 @@ int rename(const char *oldn, const char *newn)
 int fputc(int ch, FILE *f)
 {
     UNUSED(f);
+    retarget_buf[retarget_buf_len++] = (uint8_t)ch;
 
-    //return UartPutc(ch);
-    return 0;
+    // send when buffer is full and on line break
+    if(retarget_buf_len == RETARGET_BUF_MAX ||
+       ch == 0x0A)
+    {
+        if(__get_IPSR() != 0U)
+        {
+            // this is ISR context so don't push to UART
+            if(retarget_buf_len == RETARGET_BUF_MAX)
+            {
+                // if we're full just drop
+                retarget_buf_len--;
+            }
+            // otherwise just continue buffering over eol barrier
+        }
+        else
+        {
+            int buf_len = retarget_buf_len;
+            retarget_buf_len = 0;
+            if(send_str(retarget_buf, buf_len))
+            {
+                return EOF;
+            }
+        }
+    }
+
+    return ch;
 }
 
 int fgetc(FILE *f)
@@ -254,7 +291,7 @@ int fgetc(FILE *f)
     UNUSED(f);
 
     //return UartPutc(UartGetc());
-    return 0;
+    return -1;
 }
 
 #ifndef ferror
@@ -268,3 +305,5 @@ int ferror(FILE *f)
 }
 
 #endif /* #ifndef ferror */
+
+#endif // USE_SEMIHOSTING
