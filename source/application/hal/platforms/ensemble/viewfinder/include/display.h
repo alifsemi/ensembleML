@@ -42,7 +42,7 @@
 #include <stdint.h>
 
 // Temp change between 2 displays fast
-// #define USE_5INCH_NON_TOUCH
+// #define USE_5INCH_NON_TOUCH 1
 
 typedef enum {
 	ARGB8888 = 0,

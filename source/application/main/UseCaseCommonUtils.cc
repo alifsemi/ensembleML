@@ -23,7 +23,7 @@
 extern lv_obj_t *labelResult1;
 extern lv_obj_t *labelResult2;
 extern lv_obj_t *labelResult3;
-extern lv_obj_t *labelTime;
+//extern lv_obj_t *labelTime;
 
 
 void DisplayCommonMenu()

@@ -107,7 +107,7 @@ static void lv_clean_dcache_cb(lv_disp_drv_t * disp_drv) {
 lv_obj_t *labelResult1;
 lv_obj_t *labelResult2;
 lv_obj_t *labelResult3;
-lv_obj_t *labelTime;
+//lv_obj_t *labelTime;
 
 void lv_port_disp_init(void) {
 	static lv_disp_drv_t disp_drv;
@@ -141,17 +141,17 @@ void lv_port_disp_init(void) {
 	labelResult1 =  lv_label_create(lv_scr_act());
 	labelResult2 =  lv_label_create(lv_scr_act());
 	labelResult3 =  lv_label_create(lv_scr_act());
-	labelTime = lv_label_create(lv_scr_act());
+	//labelTime = lv_label_create(lv_scr_act());
 
 	lv_obj_set_style_text_align(labelResult1, LV_TEXT_ALIGN_CENTER, 0);
 	lv_obj_set_style_text_align(labelResult2, LV_TEXT_ALIGN_CENTER, 0);
 	lv_obj_set_style_text_align(labelResult3, LV_TEXT_ALIGN_CENTER, 0);
-	lv_obj_set_style_text_align(labelTime, LV_TEXT_ALIGN_CENTER, 0);
+	//lv_obj_set_style_text_align(labelTime, LV_TEXT_ALIGN_CENTER, 0);
 
 	lv_obj_align(labelResult1, LV_ALIGN_CENTER, 0, 75);
 	lv_obj_align(labelResult2, LV_ALIGN_CENTER, 0, 100);
 	lv_obj_align(labelResult3, LV_ALIGN_CENTER, 0, 125);
-	lv_obj_align(labelTime, LV_ALIGN_CENTER, 0, 150);
+	//lv_obj_align(labelTime, LV_ALIGN_CENTER, 0, 150);
 
 	lv_label_set_text_static(labelResult1, "Result 1");
 	lv_label_set_text_static(labelResult2, "Result 2");
