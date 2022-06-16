@@ -168,9 +168,12 @@ void MHU_msg_received(void* data)
         case 2:
             if (!strcmp(payload->msg, "go")) {
                 // Switch single shot and continuous inference mode
-               do_inference_once = !do_inference_once;
+               do_inference_once = false;
             }
-
+            if (!strcmp(payload->msg, "stop")) {
+                // Switch single shot and continuous inference mode
+               do_inference_once = true;
+            }
             break;
         case 3:
             break;

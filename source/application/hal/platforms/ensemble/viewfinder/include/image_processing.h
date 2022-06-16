@@ -10,6 +10,8 @@
 
 #include <stdint.h>
 
+#include "display.h"
+
 #define RGB_BYTES 		3
 #define PIXEL_BYTES 	1
 
@@ -23,7 +25,11 @@
 
 // Display dimensions
 #define DIMAGE_X		480
+#ifdef USE_5INCH_NON_TOUCH
 #define DIMAGE_Y		832
+#else
+#define DIMAGE_Y        800
+#endif
 #define DISPLAY_BUFFER_SIZE  (DIMAGE_X*DIMAGE_Y*RGB_BYTES)
 
 #define TIFF_HDR_NUM_ENTRY 8
