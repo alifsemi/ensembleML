@@ -239,15 +239,16 @@ SECTIONS
     *(.bss.NoInit.activation_buf)
 
   } > SRAM1 AT > SRAM1
-/*
+
+  /*
   ASSERT (
       (__ro_data_end__ - __ro_data_start__)
     + (__data_end__  - __data_start__)
     + __HEAP_SIZE <= LENGTH(SRAM1),
     "SRAM1 overflow")
-    */
+  */
 
-  /* Magic number (0xFFA0A710) + (0 = A32_0, 1 = A32_1, 2 = CM55HP, 3 = CM55HE) */
+  /* Magic number (0xFFA0A710) + (0 = A32_0, 1 = A32_1, 2 = CM55HP, 3 = CM55HE)
   .mini_toc :
   {
   	LONG (0xffffffff)
@@ -255,5 +256,6 @@ SECTIONS
   	LONG (__ROM_BASE)
   	LONG (0)
   } > TOC
+  */
 
 }
