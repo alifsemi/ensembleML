@@ -43,17 +43,13 @@
 #include "image_processing.h"
 
 
-#define MY_DISP_HOR_RES 240
-#ifdef USE_5INCH_NON_TOUCH
-#define MY_DISP_VER_RES 416
-#else
-#define MY_DISP_VER_RES 400
-#endif
-#define MY_DISP_BUFFER	(MY_DISP_VER_RES * 10)
+#define MY_DISP_HOR_RES (DIMAGE_X >> 1)
+#define MY_DISP_VER_RES (DIMAGE_Y >> 1)
+#define MY_DISP_BUFFER  (MY_DISP_VER_RES * 10)
 
 extern uint8_t lcd_image[DIMAGE_Y][DIMAGE_X][RGB_BYTES];
 
-__STATIC_INLINE put_px(int32_t x, int32_t y, lv_color_t * color_p)
+__STATIC_INLINE void put_px(int32_t x, int32_t y, lv_color_t * color_p)
 {
 	x <<= 1;
 	y <<= 1;
@@ -96,11 +92,7 @@ static void lv_disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_c
 
 static void lv_clean_dcache_cb(lv_disp_drv_t * disp_drv) {
 	/* Example for Cortex-M (CMSIS) */
-#ifdef USE_5INCH_NON_TOUCH
-	SCB_CleanDCache();
-#else
 	SCB_CleanInvalidateDCache();
-#endif
 	(void)(disp_drv);
 }
 

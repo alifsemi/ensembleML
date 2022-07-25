@@ -36,63 +36,23 @@
  * @Note     None
  ******************************************************************************/
 
+#include <math.h>
 #include "display.h"
 #include "Driver_CDC200.h"
 #include "RTE_Components.h"
 #include CMSIS_device_header
 
+#define HW_REG_WORD(base,offset) *((volatile uint32_t *) (base + offset))
+#define cdc_base_addr      0x49031000
+#define expslv1_base_addr  0x4903F000
 
-void display_controler_clock_config (void)
+void display_controller_enable(uint8_t enable)
 {
-	volatile int *ptr;
+	if (enable)
+		HW_REG_WORD(cdc_base_addr,0x18) = 1;
 
-	//cfgslv1; clock divider need to match pixel clock
-	ptr = (int *) (CFGSLV1_BASE + EXPSLV1_CDC200_PIXCLK_CTRL);
-	*ptr = (EXPSLV1_PIXEL_CLOCK_ENABLE | EXPSLV1_PIXEL_CLOCK_DIVISOR);
-}
-
-/**
- \fn            void set_display_controller_image_dimension (uint32_t image_format, uint16_t height, uint16_t width);
- \brief         Configuring the display controller for Image dimension.
- \param[in]     image_format: Image standard or type
- \param[in]     height: Height of the display.
- \param[in]     width: Width of the display
- */
-void set_display_controller_image_dimension (uint32_t image_format, uint16_t height, uint16_t width)
-{
-	CDC200_RegInfo *regbase = (CDC200_RegInfo *) CDC200_BASE;
-
-	switch (image_format)
-	{
-		case 0: //ARGB8888
-		{
-			// In ARGB8888 standard One pixel handled by 4 byte, so width size multiplied with 4 //
-			regbase->layer1_reg.fb_length = (((width * 4) << 16) | ((width * 4) + BUS_WIDTH));
-			break;
-		}
-		case 1: //RGB888
-		{
-			// In RGB888 standard One pixel handled by 3 byte, so width size multiplied with 3 //
-			regbase->layer1_reg.fb_length = (((width * 3) << 16) | ((width * 3) + BUS_WIDTH));
-
-			//Alpha constant
-			regbase->layer1_reg.alpha = ALPHA_CONSTANT;
-			break;
-		}
-		case 2: //RGB565
-		{
-			// In ARGB8888 standard One pixel handled by 2 byte, so width size multiplied with 2 //
-			regbase->layer1_reg.fb_length = (((width * 2) << 16) | ((width * 2) + BUS_WIDTH));
-
-			//Alpha constant
-			regbase->layer1_reg.alpha = ALPHA_CONSTANT;
-			break;
-		}
-	}
-
-	regbase->layer1_reg.pixel_format = image_format;
-
-	regbase->layer1_reg.fb_lines = height;
+	else
+		HW_REG_WORD(cdc_base_addr,0x18) = 0;
 }
 
 /**
@@ -105,62 +65,33 @@ void set_display_controller_image_dimension (uint32_t image_format, uint16_t hei
  */
 int32_t display_controller_setup (uint32_t image_buff_address, uint32_t image_format, const display_panel *panel)
 {
-	uint32_t rd_data = 0;
-	uint32_t sync_size = (((panel->hsync - 1) <<16 ) + (panel->vsync - 1));
-	uint32_t back_porch = (panel->h_back_porch << 16) + panel->v_back_porch + sync_size;
-	uint32_t active_width = (panel->width <<16) + panel->height + back_porch;
-	uint32_t total_width = (panel->h_front_porch <<16) + panel->v_front_porch + active_width;
+	////////////////////////////////////////////////////////////////
+	// LCD Controller Setup
+	////////////////////////////////////////////////////////////////
 
-	CDC200_RegInfo *regbase = (CDC200_RegInfo *) CDC200_BASE;
+	uint32_t pixel_clock = 60 * (HSA+HBP+HACT+HFP) * (VSA+VBP+VACT+VFP);
+	uint32_t divider = roundf((float)400000000 / (float)pixel_clock);
 
-	if (image_buff_address == 0)                                         { return DRIVER_ERROR; }
-	if (image_format > RGB565)                                           { return DRIVER_ERROR; }
-	if ((panel->h_back_porch == 0) || (panel->v_back_porch == 0))        { return DRIVER_ERROR; }
-	if ((panel->width == 0) || (panel->height == 0))                     { return DRIVER_ERROR; }
-	if ((panel->h_front_porch == 0) || (panel->h_front_porch == 0))      { return DRIVER_ERROR; }
+	HW_REG_WORD(expslv1_base_addr,0x04) = (divider << 16) | 1;	// pixel clock = 400MHz / 14 = 28.57MHz
 
-	display_controler_clock_config();
+	display_controller_enable(0);
 
-	//enable single frame mode
-	rd_data = regbase->global_reg.global_control;
-	rd_data = ((rd_data & 0xF0000000) | 0x00000001);
-	regbase->global_reg.global_control = rd_data;
+	HW_REG_WORD(cdc_base_addr,0x08) = (HSA-1)<<16 | (VSA-1);
+	HW_REG_WORD(cdc_base_addr,0x0C) = (HSA+HBP-1)<<16 | (VSA+VBP-1);
+	HW_REG_WORD(cdc_base_addr,0x10) = (HSA+HBP+HACT-1)<<16 | (VSA+VBP+VACT-1);
+	HW_REG_WORD(cdc_base_addr,0x14) = (HSA+HBP+HACT+HFP-1)<<16 | (VSA+VBP+VACT+VFP-1);
 
-	regbase->global_reg.background_color = 0;
+	HW_REG_WORD(cdc_base_addr,0x10C) = 0;
+	HW_REG_WORD(cdc_base_addr,0x110) = (HSA+HBP+HACT-1)<<16 | (HSA+HBP);
+	HW_REG_WORD(cdc_base_addr,0x114) = (VSA+VBP+VACT-1)<<16 | (VSA+VBP);
+	HW_REG_WORD(cdc_base_addr,0x11C) = 1;	// 0: 32-bit ARGB, 1: 24-bit RGB
+	HW_REG_WORD(cdc_base_addr,0x134) = image_buff_address;
+	HW_REG_WORD(cdc_base_addr,0x138) = (HACT*3)<<16 | ((HACT*3)+7);
+	HW_REG_WORD(cdc_base_addr,0x13C) = VACT;
+	HW_REG_WORD(cdc_base_addr,0x10C) = 1;
 
-	regbase->global_reg.irq_enable = 0;
-
-	regbase->global_reg.sync_size = sync_size;
-
-	regbase->global_reg.back_porch = back_porch;
-
-	regbase->global_reg.active_width = active_width;
-
-	regbase->global_reg.total_width = total_width;
-
-	regbase->layer1_reg.control = 0x00000001;
-
-	regbase->layer1_reg.window_h = ((active_width & 0xffff0000u) | ((back_porch >> 16)+1));
-
-	regbase->layer1_reg.window_v = (((active_width & 0xffffu) << 16) | ((back_porch & 0xffffu) + 1));
-
-	regbase->layer1_reg.fb_start = image_buff_address;
-
-	set_display_controller_image_dimension (image_format, panel->height, panel->width);
-
-	regbase->global_reg.shadow_reload_control = 0x00000001;
-
-	regbase->global_reg.irq_enable = 0x00000001;
-
-	regbase->global_reg.irq_clear = 0x00000001;
-
-	regbase->global_reg.global_configuration_1 = 0;
-
-	rd_data = regbase->global_reg.global_configuration_2;
-	regbase->global_reg.global_configuration_2 = (rd_data | 0x00001000);
-
-	rd_data = regbase->global_reg.global_control;
-	regbase->global_reg.global_control = (rd_data | 0x00000001);
+	HW_REG_WORD(cdc_base_addr,0x24) = 1;
 
 	return DRIVER_OK;
 }
+

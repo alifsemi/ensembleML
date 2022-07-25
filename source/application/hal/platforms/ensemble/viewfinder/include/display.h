@@ -41,16 +41,61 @@
 
 #include <stdint.h>
 
-// Temp change between 2 displays fast
-// #define USE_5INCH_NON_TOUCH 1
+// Use to change between displays
+//#define E50RA_MW550_N
+//#define E43RB_FW405_C
+#define E43GB_MW405_C
 
-typedef enum {
-	ARGB8888 = 0,
-	RGB888,
-	RGB565
-} image_format;
+#if defined(E50RA_MW550_N)
+#define RATE_464M
+#define VACT 854
+#define VSA 4
+#define VBP 30
+#define VFP 20
+#define HACT 480
+#define HSA 4
+#define HBP 30
+#define HFP 18
+#elif defined(E43RB_FW405_C)
+#define RATE_415M
+#define VACT 854
+#define VSA 2
+#define VBP 10
+#define VFP 10
+#define HACT 480
+#define HSA 4
+#define HBP 5
+#define HFP 5
+#elif defined(E43GB_MW405_C)
+#define RATE_415M
+#define VACT 854
+#define VSA 2
+#define VBP 10
+#define VFP 10
+#define HACT 480
+#define HSA 4
+#define HBP 5
+#define HFP 5
+#else
+#error
+#endif
 
-
-int32_t graphics_setup (uint32_t image_buff_address, uint32_t image_format);
+#if defined(RATE_415M)
+#define hsfreqrange 0x5
+#define pll_soc_m_7_0 0x7
+#define pll_soc_m_9_8 0x2
+#define pll_soc_n 0x2
+#define below_450Mbps 1
+#define vco_cntrl 0x18
+#elif defined(RATE_464M)
+#define hsfreqrange 0x16
+#define pll_soc_m_7_0 0x44
+#define pll_soc_m_9_8 0x2
+#define pll_soc_n 0x2
+#define below_450Mbps 1
+#define vco_cntrl 0x18
+#else
+#error
+#endif
 
 #endif /* __DISPLAY_H__ */

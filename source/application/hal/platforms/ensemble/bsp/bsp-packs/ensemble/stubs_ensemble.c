@@ -44,23 +44,12 @@ void SetupLEDs()
 	Driver_GPIO1.SetDirection(PIN_NUMBER_15, GPIO_PIN_DIRECTION_OUTPUT);
 	PINMUX_Config (PORT_NUMBER_1, PIN_NUMBER_15, PINMUX_ALTERNATE_FUNCTION_0);
 
-#ifdef USE_5INCH_NON_TOUCH
-	PINPAD_Config (PORT_NUMBER_1, PIN_NUMBER_15, PAD_FUNCTION_READ_ENABLE);
-#else
-	PINPAD_Config (PORT_NUMBER_1, PIN_NUMBER_15, (0x09 | PAD_FUNCTION_OUTPUT_DRIVE_STRENGTH_04_MILI_AMPS)); //SDA
-#endif
-
 	// Red LED
 	Driver_GPIO1.Initialize(PIN_NUMBER_14,NULL);
 	Driver_GPIO1.PowerControl(PIN_NUMBER_14,  ARM_POWER_FULL);
 	Driver_GPIO1.SetValue(PIN_NUMBER_14, GPIO_PIN_OUTPUT_STATE_LOW);
 	Driver_GPIO1.SetDirection(PIN_NUMBER_14, GPIO_PIN_DIRECTION_OUTPUT);
 	PINMUX_Config (PORT_NUMBER_1, PIN_NUMBER_14, PINMUX_ALTERNATE_FUNCTION_0);
-#ifdef USE_5INCH_NON_TOUCH
-	PINPAD_Config (PORT_NUMBER_1, PIN_NUMBER_14, PAD_FUNCTION_READ_ENABLE);
-#else
-	PINPAD_Config (PORT_NUMBER_1, PIN_NUMBER_14, (0x09 | PAD_FUNCTION_OUTPUT_DRIVE_STRENGTH_04_MILI_AMPS)); //SDA
-#endif
 }
 
 uint32_t GetCoreClock(void)
@@ -85,12 +74,7 @@ void GLCD_Initialize(void)
 
 	static volatile int dinit = 0;
 
-#ifdef USE_5INCH_NON_TOUCH
-	extern void hw_disp_init();
-	hw_disp_init();
-#else
 	dinit = Display_initialization(&lcd_image[0][0][0]);
-#endif
 
 	if (dinit != 0) {
 		while(1) {

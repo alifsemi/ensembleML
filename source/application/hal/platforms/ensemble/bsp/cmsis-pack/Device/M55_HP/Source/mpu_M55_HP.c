@@ -54,7 +54,7 @@
  * @param  None
  * @retval None
  */
-const ARM_MPU_Region_t mpu_table[] = {
+static const ARM_MPU_Region_t mpu_table[] = {
 	{
 		/* Low Power Peripheral Regions */
 		.RBAR = ARM_MPU_RBAR(0x70000000UL, ARM_MPU_SH_NON, 0UL, 1UL, 1UL),

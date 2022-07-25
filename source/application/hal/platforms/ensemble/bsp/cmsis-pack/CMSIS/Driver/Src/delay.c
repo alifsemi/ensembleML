@@ -80,11 +80,11 @@ void sleep_or_wait_msec(uint32_t msec)
 
 #else /* NO RTOS_AVAILABLE */
 
-  extern uint32_t SystemCoreClock;
+	extern uint32_t SystemCoreClock;
 
 	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
 	ARM_PMU_Enable();
-	ARM_PMU_CNTR_Enable(0x80000000);
+	ARM_PMU_CNTR_Enable(1U << 31);
 	ARM_PMU_CYCCNT_Reset();
 
 	uint32_t sleeptime = msec * (SystemCoreClock / 1000);
@@ -95,8 +95,12 @@ void sleep_or_wait_msec(uint32_t msec)
 
 void sleep_or_wait_usec(uint32_t usec)
 {
+	extern uint32_t SystemCoreClock;
+
+	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+	ARM_PMU_Enable();
+	ARM_PMU_CNTR_Enable(1U << 31);
 	ARM_PMU_CYCCNT_Reset();
-	ARM_PMU_Get_CCNTR();
 
 	uint32_t sleeptime = usec * (SystemCoreClock / 1000000);
 	while (ARM_PMU_Get_CCNTR() < sleeptime);

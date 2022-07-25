@@ -43,7 +43,7 @@
 
 #define EXPSLV1_CDC200_PIXCLK_CTRL                  (0x04)
 #define EXPSLV1_PIXEL_CLOCK_ENABLE                  (0x01)
-#define EXPSLV1_PIXEL_CLOCK_DIVISOR                 (0x08 << 16)
+#define EXPSLV1_PIXEL_CLOCK_DIVISOR                 (0x0E << 16)
 #define CFGMST0_PIXEL_CLOCK_ENABLE                  (0x01 << 1)
 #define CFGMST0_IP_CLOCK_ENABLE                     (0x01 << 4)
 
@@ -146,6 +146,13 @@ typedef struct {
 	uint16_t v_front_porch;
 } display_panel;
 
+typedef enum {
+	ARGB8888 = 0,
+	RGB888,
+	RGB565
+} image_format;
+
+void display_controller_enable(uint8_t enable);
 int32_t display_controller_setup (uint32_t image_buff_address, uint32_t image_format, const display_panel *panel);
 
 #endif /* __DISPLAY_CONTROLLER_DRIVER_H__ */

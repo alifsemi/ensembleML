@@ -104,21 +104,16 @@
 
 #define     A_DSC_PARAMETER                     0xF0
 
-#define tx_format_rgb888
-#define TX_FREQ_125M
-
 int tx_phyconfig();
 
 //Display
-void DCSW1_S (uint8_t, uint8_t); //cmd, data
-void DCSWN_S (uint8_t); //cmd
-void DCSW_L (uint8_t, uint8_t, uint8_t, uint8_t, uint8_t); //cmd, data1, data2, data3, data4
+void DCSWN_S(uint8_t);
+void DCSW1_S(uint8_t,uint8_t);
+void DCSRN_S (uint8_t);
 void SMRPS_S (uint8_t);
-void DCSRR1_S (uint8_t);
+void DCSW_L (uint8_t,uint8_t, uint8_t, uint8_t, uint8_t);
 
 void dsi_command_mode_initialization(void);
 void dsi_video_mode_initialization(void);
-void dsi_reset(void);
-void dsi_powerup(void);
 
 #endif /* MIPI_DSI_MIPI_DSI_HOST_H_ */
