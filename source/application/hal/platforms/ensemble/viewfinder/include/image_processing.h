@@ -25,8 +25,8 @@
 
 // Display dimensions
 #define DIMAGE_X		480
-#ifdef USE_5INCH_NON_TOUCH
-#define DIMAGE_Y		832
+#ifdef E50RA_MW550_N
+#define DIMAGE_Y		854
 #else
 #define DIMAGE_Y        800
 #endif

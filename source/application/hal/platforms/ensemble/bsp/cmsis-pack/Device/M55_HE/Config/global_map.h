@@ -111,6 +111,8 @@
 /* APB-D Peripherals */
 #define CAMERA0_BASE              (EXPMST0_APB_D_BASE)
 #define CDC200_BASE               (EXPMST0_APB_D_BASE + 0x00001000)
+#define MIPIDSI_BASE              (EXPMST0_APB_D_BASE + 0x00002000)
+#define MIPICSI_BASE              (EXPMST0_APB_D_BASE + 0x00003000)
 #define CFGSLV1_BASE              (EXPMST0_APB_D_BASE + 0x0000F000)
 
 

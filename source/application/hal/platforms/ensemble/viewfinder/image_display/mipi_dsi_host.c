@@ -9,9 +9,6 @@
 #include "display.h"
 #include "delay.h"
 
-#define mipi_dsi_base_addr 0x49032000
-#define expslv1_base_addr  0x4903F000
-
 static void DSI_DPHY_REG_WRITE(uint16_t,uint8_t);
 static uint8_t DSI_DPHY_REG_READ(uint16_t);
 
@@ -24,14 +21,14 @@ void dsi_command_mode_initialization(void)
 	//1.1 configure Vdieo Mode type VID_MODE_CFG[1:0]
 	//1:0 vid_mode_type R/W This field indicates the video mode transmission type
 	//15 lp_cmd_en R/W When set to 1, this bit enables the command transmission only in low-power mode.
-	HW_REG_WORD(mipi_dsi_base_addr,0x38) = 0x00003F02; //burst mode
+	HW_REG_WORD(MIPIDSI_BASE,0x38) = 0x00003F02; //burst mode
 
 	//The following are added for ESC mode LPDT
 	//CLKMGR_CFG
 	//7:0 tx_esc_clk_division R/W
 	//  This field indicates the division factor for the TX Escape clock source (lanebyteclk).
 	//  The values 0 and 1 stop the TX_ESC clock generation.
-	HW_REG_WORD(mipi_dsi_base_addr,0x8) = 4;
+	HW_REG_WORD(MIPIDSI_BASE,0x8) = 4;
 
 	//CMD_MODE_CFG
 	//24 max_rd_pkt_size
@@ -47,9 +44,9 @@ void dsi_command_mode_initialization(void)
 	//9 gen_sw_1p_tx R/W This bit configures the Generic short write packet with one parameter command transmission type:
 	//8 gen_sw_0p_tx R/W This bit configures the Generic short write packet with zero parameter command transmission type:
 	//low power = 1; high speed = 0;
-	HW_REG_WORD(mipi_dsi_base_addr,0x68)=0x010F7F00;
+	HW_REG_WORD(MIPIDSI_BASE,0x68)=0x010F7F00;
 
-	HW_REG_WORD(mipi_dsi_base_addr,0x4) = 1;	// DSI controller enable
+	HW_REG_WORD(MIPIDSI_BASE,0x4) = 1;	// DSI controller enable
 }
 
 void dsi_video_mode_initialization(void)
@@ -61,89 +58,89 @@ void dsi_video_mode_initialization(void)
 	//This register configures the possibility for using non continuous clock in the clock lane.
 	//0 phy_txrequestclkhs R/W This bit controls the D-PHY PPI txrequestclkhs signal.
 	//from Synopsys
-	HW_REG_WORD(mipi_dsi_base_addr,0x94) = 1;
+	HW_REG_WORD(MIPIDSI_BASE,0x94) = 1;
 
 	//1. configure MODE_CFG register to enable video mode
-	HW_REG_WORD(mipi_dsi_base_addr,0x34) = 0;
+	HW_REG_WORD(MIPIDSI_BASE,0x34) = 0;
 
 	//2. configure DPI_COLOR_CODING register
 	// 0x5 (CC05): 24-bit
-	HW_REG_WORD(mipi_dsi_base_addr,0x10) = 5;
+	HW_REG_WORD(MIPIDSI_BASE,0x10) = 5;
 
 	//3. vid_pkt_size
 	// pixel perline
-	HW_REG_WORD(mipi_dsi_base_addr,0x3c) = HACT;
+	HW_REG_WORD(MIPIDSI_BASE,0x3c) = HACT;
 
 	//4. vid_num_chunks
 	// chunks per line
-	HW_REG_WORD(mipi_dsi_base_addr,0x40) = 0; //no chunks
+	HW_REG_WORD(MIPIDSI_BASE,0x40) = 0; //no chunks
 
 	//5. null packet
 	//12:0 vid_null_size R/W This register configures the number of bytes inside a null packet. Setting to 0 disables null packets.
-	HW_REG_WORD(mipi_dsi_base_addr,0x44) = 0; //disable
+	HW_REG_WORD(MIPIDSI_BASE,0x44) = 0; //disable
 
 	//6. This register configures the video HSA time.
 	//11:0 vid_hsa_time R/W This field configures the Horizontal Sync Active period in lane byte clock cycles.
-	HW_REG_WORD(mipi_dsi_base_addr,0x48) = HSA<<1;
+	HW_REG_WORD(MIPIDSI_BASE,0x48) = HSA<<1;
 
 	//7. This register configures the video HBP time.
 	//11:0 vid_hbp_time R/W This field configures the Horizontal Back Porch period in lane byte clock cycles
-	HW_REG_WORD(mipi_dsi_base_addr,0x4C) = HBP<<1;
+	HW_REG_WORD(MIPIDSI_BASE,0x4C) = HBP<<1;
 
 	//8. This register configures the overall time for each video line.
 	//14:0 vid_hline_time R/W This field configures the size of the total line time (HSA+HBP+HACT+HFP) counted in lane byte clock cycles.
-	HW_REG_WORD(mipi_dsi_base_addr,0x50) = (HSA+HBP+HACT+HFP)<<1;
+	HW_REG_WORD(MIPIDSI_BASE,0x50) = (HSA+HBP+HACT+HFP)<<1;
 
 	//9. This register configures the VSA period.
 	//9:0 vsa_lines R/W This field configures the Vertical Sync Active period measured in number of horizontal lines.
-	HW_REG_WORD(mipi_dsi_base_addr,0x54) = VSA;
+	HW_REG_WORD(MIPIDSI_BASE,0x54) = VSA;
 
 	//10. This register configures the VBP period.
 	//9:0 vbp_lines R/W This field configures the Vertical Back Porch period measured in number of horizontal lines.
-	HW_REG_WORD(mipi_dsi_base_addr,0x58) = VBP;
+	HW_REG_WORD(MIPIDSI_BASE,0x58) = VBP;
 
 	//11. This register configures the VFP period.
 	//9:0 vfp_lines R/W This field configures the Vertical Front Porch period measured in number of horizontal lines.
-	HW_REG_WORD(mipi_dsi_base_addr,0x5C) = VFP;
+	HW_REG_WORD(MIPIDSI_BASE,0x5C) = VFP;
 
 	//12. This register configures the vertical resolution of video.
 	//13:0 v_active_lines R/W This field configures the Vertical Active period measured in number of horizontal lines.
-	HW_REG_WORD(mipi_dsi_base_addr,0x60) = VACT;
+	HW_REG_WORD(MIPIDSI_BASE,0x60) = VACT;
 }
 
 #define DCS_DELAY  100
 
 void DCSWN_S (uint8_t cmd)
 {
-	HW_REG_WORD(mipi_dsi_base_addr,A_GEN_HDR) = 0x05 | cmd<<8;
+	HW_REG_WORD(MIPIDSI_BASE,A_GEN_HDR) = 0x05 | cmd<<8;
 	sleep_or_wait_usec(DCS_DELAY);
 }
 
 void DCSW1_S (uint8_t cmd, uint8_t data)
 {
-	HW_REG_WORD(mipi_dsi_base_addr,A_GEN_HDR) = 0x15 | cmd<<8 | data<<16;
+	HW_REG_WORD(MIPIDSI_BASE,A_GEN_HDR) = 0x15 | cmd<<8 | data<<16;
 	sleep_or_wait_usec(DCS_DELAY);
 }
 
 void DCSRN_S (uint8_t cmd)
 {
-	HW_REG_WORD(mipi_dsi_base_addr,A_GEN_HDR) = 0x137;
+	HW_REG_WORD(MIPIDSI_BASE,A_GEN_HDR) = 0x137;
 	sleep_or_wait_usec(DCS_DELAY);
-	HW_REG_WORD(mipi_dsi_base_addr,A_GEN_HDR) = 0x06 | cmd<<8;
+	HW_REG_WORD(MIPIDSI_BASE,A_GEN_HDR) = 0x06 | cmd<<8;
 	sleep_or_wait_usec(DCS_DELAY);
 }
 
 void SMRPS_S(uint8_t num_bytes)
 {
-	HW_REG_WORD(mipi_dsi_base_addr,A_GEN_HDR) = 0x37 | num_bytes<<8;
+	HW_REG_WORD(MIPIDSI_BASE,A_GEN_HDR) = 0x37 | num_bytes<<8;
 	sleep_or_wait_usec(DCS_DELAY);
 }
 
 void DCSW_L (uint8_t cmd, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4)
 {
-	HW_REG_WORD(mipi_dsi_base_addr,A_GEN_PLD_DATA) = data2<<24 | data1<<16 | cmd<<8 | cmd;
-	HW_REG_WORD(mipi_dsi_base_addr,A_GEN_PLD_DATA) = data4<<8 | data3;
-	HW_REG_WORD(mipi_dsi_base_addr,A_GEN_HDR) = 0x39 | 0x6<<8;
+	HW_REG_WORD(MIPIDSI_BASE,A_GEN_PLD_DATA) = data2<<24 | data1<<16 | cmd<<8 | cmd;
+	HW_REG_WORD(MIPIDSI_BASE,A_GEN_PLD_DATA) = data4<<8 | data3;
+	HW_REG_WORD(MIPIDSI_BASE,A_GEN_HDR) = 0x39 | 0x6<<8;
 	sleep_or_wait_usec(DCS_DELAY);
 }
 
@@ -164,21 +161,21 @@ int tx_phyconfig(void)
 
 	sleep_or_wait_msec(100);
 
-	HW_REG_WORD(mipi_dsi_base_addr,0x4) = 0;	// reset DSI controller
+	HW_REG_WORD(MIPIDSI_BASE,0x4) = 0;	// reset DSI controller
 
-	HW_REG_WORD(mipi_dsi_base_addr,0xA0) = 0;	// reset DSI D-PHY and PLL
+	HW_REG_WORD(MIPIDSI_BASE,0xA0) = 0;	// reset DSI D-PHY and PLL
 
-	HW_REG_WORD(mipi_dsi_base_addr,0xA4) = 1;	// number of lines: 0 for 1 lane data, 1 for 2 lane data
+	HW_REG_WORD(MIPIDSI_BASE,0xA4) = 1;	// number of lines: 0 for 1 lane data, 1 for 2 lane data
 
-	HW_REG_WORD(expslv1_base_addr,0x30) =  0x00000100;
-	HW_REG_WORD(mipi_dsi_base_addr,0xB4) = 0x00000000;//test_clr=0
-	HW_REG_WORD(mipi_dsi_base_addr,0xB4) = 0x00000001;//test_clr=1
-	HW_REG_WORD(mipi_dsi_base_addr,0xB4) = 0x00000000;//test_clr=0
-	HW_REG_WORD(expslv1_base_addr,0x30) =  0x00000110;
-	HW_REG_WORD(mipi_dsi_base_addr,0xB4) = 0x00000000;//test_clr=0
-	HW_REG_WORD(mipi_dsi_base_addr,0xB4) = 0x00000001;//test_clr=1
-	HW_REG_WORD(mipi_dsi_base_addr,0xB4) = 0x00000000;//test_clr=0
-	HW_REG_WORD(expslv1_base_addr,0x30) =  0x00000100;
+	HW_REG_WORD(CFGSLV1_BASE,0x30) =  0x00000100;
+	HW_REG_WORD(MIPIDSI_BASE,0xB4) = 0x00000000;//test_clr=0
+	HW_REG_WORD(MIPIDSI_BASE,0xB4) = 0x00000001;//test_clr=1
+	HW_REG_WORD(MIPIDSI_BASE,0xB4) = 0x00000000;//test_clr=0
+	HW_REG_WORD(CFGSLV1_BASE,0x30) =  0x00000110;
+	HW_REG_WORD(MIPIDSI_BASE,0xB4) = 0x00000000;//test_clr=0
+	HW_REG_WORD(MIPIDSI_BASE,0xB4) = 0x00000001;//test_clr=1
+	HW_REG_WORD(MIPIDSI_BASE,0xB4) = 0x00000000;//test_clr=0
+	HW_REG_WORD(CFGSLV1_BASE,0x30) =  0x00000100;
 
 	//7. Set hsfreqrange[6:0] and cfgclkfreqrange[7:0]
 	//[22:16] - hsfreqrange[6:0]
@@ -186,7 +183,7 @@ int tx_phyconfig(void)
 	//cfgclk = 25MHz
 
 	//7.1 TX
-	HW_REG_WORD(expslv1_base_addr,0x30) = (0x20 << 24) | (hsfreqrange << 16) | (1U << 8);
+	HW_REG_WORD(CFGSLV1_BASE,0x30) = (0x20 << 24) | (hsfreqrange << 16) | (1U << 8);
 
 	//8. Configure TX register 0x16A to set pll_mpll_prog_rw (bits1:0) to 2'b11.
 	//Before D-PHY power, set TX register 0x16A bits1:0 to 2'b11 (pll_mpll_prog_rw).
@@ -247,16 +244,16 @@ int tx_phyconfig(void)
 
 	//pll_soc_clksel [21:20]	RW	0x0	clkext div selection - clksel
 	//should be set to 2'b01
-	rd_data = HW_REG_WORD(expslv1_base_addr,0x10);
+	rd_data = HW_REG_WORD(CFGSLV1_BASE,0x10);
 	rd_data |= 1UL << 20;
-	HW_REG_WORD(expslv1_base_addr,0x10) = rd_data;
+	HW_REG_WORD(CFGSLV1_BASE,0x10) = rd_data;
 
 	//When the PHY is configured as a master (tx_rxz=1'b1) the PLL needs to always be properly configured for
 	//the desired operating frequency before D-PHY Start-up.
 	//Use pll shadow control (set to 0 if using SoC registers, 1 for D-PHY test interface)
-	rd_data = HW_REG_WORD(expslv1_base_addr,0x10);
+	rd_data = HW_REG_WORD(CFGSLV1_BASE,0x10);
 	rd_data |= 1UL << 4;
-	HW_REG_WORD(expslv1_base_addr,0x10) = rd_data;
+	HW_REG_WORD(CFGSLV1_BASE,0x10) = rd_data;
 
 	//m[11:0] - pll_m_ovr_rw[7:0], pll_m_ovr_rw[11:8], pll_m_ovr_en_rw ?? 0x179, 0x17a, 0x17b
 	//n[3:0] - pll_n_ovr_rw[3:0], pll_n_ovr_en_rw ?? 0x178
@@ -278,7 +275,7 @@ int tx_phyconfig(void)
 	//MIPI-DPHY PLL Control Register 1
 	//pll_soc_m [9:0]	RW	0x0	Control of the feedback multiplication ratio M (40 to 625) for SoC direct PLL control	( dphy_pll_ctrl1.pll_soc_m = 0x0 )
 	//pll_soc_n [15:12]	RW	0x0	Control of the input frequency division ratio N (1 to 16) for SoC direct PLL control	( dphy_pll_ctrl1.pll_soc_n = 0x0 )
-	//HW_REG_WORD(expslv1_base_addr,0x14) = 0x031A1;
+	//HW_REG_WORD(CFGSLV1_BASE,0x14) = 0x031A1;
 
 	//dphy4txtester_DIG_RDWR_TX_PLL_28
 	//7:0 pll_m_ovr_rw__7__0__ R/W Description: PLL feedback divider override
@@ -328,26 +325,26 @@ int tx_phyconfig(void)
 
 	//17. Set basedir_n = 1'b0;
 	//18. Set forcerxmode_n = 1'b0;
-	HW_REG_WORD(expslv1_base_addr,0x34)=0x00000000;
+	HW_REG_WORD(CFGSLV1_BASE,0x34)=0x00000000;
 
 	//19. Set all requests inputs to zero;
 	//20. Wait for 15 ns;
 	// PMU_delay_loop_ns(15);
 
 	//21. Set enable_n and enableclk=1'b1;
-	HW_REG_WORD(mipi_dsi_base_addr,0xa0)=0x00000004;
+	HW_REG_WORD(MIPIDSI_BASE,0xa0)=0x00000004;
 
 	//22. Wait 5 ns;
 	// PMU_delay_loop_ns(5);
 
 	//23. Set shutdownz=1'b1;
-	HW_REG_WORD(mipi_dsi_base_addr,0xa0)=0x00000005;
+	HW_REG_WORD(MIPIDSI_BASE,0xa0)=0x00000005;
 
 	//24. Wait 5 ns;
 	// PMU_delay_loop_ns(5);
 
 	//25. Set rstz=1'b1;
-	HW_REG_WORD(mipi_dsi_base_addr,0xa0)=0x00000007;
+	HW_REG_WORD(MIPIDSI_BASE,0xa0)=0x00000007;
 
 	//dphy4txtester_DIG_RDWR_TX_PLL_17
 	// 7 pll_pwron_ovr_rw R/W Description: PLL poweron override
@@ -358,7 +355,7 @@ int tx_phyconfig(void)
 	//enabled datalanes and clocklane.
 	do {
 		sleep_or_wait_usec(20);
-		rd_data = HW_REG_WORD(mipi_dsi_base_addr,0xB0);
+		rd_data = HW_REG_WORD(MIPIDSI_BASE,0xB0);
 
 	} while ((rd_data & 0x00000094) != 0x00000094);
 
@@ -389,24 +386,24 @@ uint8_t DSI_DPHY_REG_READ(uint16_t reg_addr)
 	uint8_t r_data_8;
 
 	//1.
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b4) = 0x00000000;//a. testclk
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b8) = 0x00000000;//a. testen
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b8) = 0x00010000;//b. testen_high
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b4) = 0x00000002;//c. testclk high
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b8) = 0x00010000;//d. place testdin 0x00
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b4) = 0x00000000;//e. testclk low
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b8) = 0x00000000;//f. place testen low
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b8) = reg_addr >> 8;//g. MSB testdin
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b4) = 0x00000002;//h. set testclk high
+	HW_REG_WORD(MIPIDSI_BASE,0x00b4) = 0x00000000;//a. testclk
+	HW_REG_WORD(MIPIDSI_BASE,0x00b8) = 0x00000000;//a. testen
+	HW_REG_WORD(MIPIDSI_BASE,0x00b8) = 0x00010000;//b. testen_high
+	HW_REG_WORD(MIPIDSI_BASE,0x00b4) = 0x00000002;//c. testclk high
+	HW_REG_WORD(MIPIDSI_BASE,0x00b8) = 0x00010000;//d. place testdin 0x00
+	HW_REG_WORD(MIPIDSI_BASE,0x00b4) = 0x00000000;//e. testclk low
+	HW_REG_WORD(MIPIDSI_BASE,0x00b8) = 0x00000000;//f. place testen low
+	HW_REG_WORD(MIPIDSI_BASE,0x00b8) = reg_addr >> 8;//g. MSB testdin
+	HW_REG_WORD(MIPIDSI_BASE,0x00b4) = 0x00000002;//h. set testclk high
 
 	//2.
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b4) = 0x00000000;//a. testclk low
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b8) = 0x00010000 | (reg_addr >> 8);//b. testen_high
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b4) = 0x00000002;//c. set testclk high
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b8) = 0x00010000 | (reg_addr & 0xff); //d. LSB testdin
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b4) = 0x00000000;//e. set testclk low
-	read_data = HW_REG_WORD(mipi_dsi_base_addr,0x00b8);
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b8) = 0x00000000;//f. testen_low
+	HW_REG_WORD(MIPIDSI_BASE,0x00b4) = 0x00000000;//a. testclk low
+	HW_REG_WORD(MIPIDSI_BASE,0x00b8) = 0x00010000 | (reg_addr >> 8);//b. testen_high
+	HW_REG_WORD(MIPIDSI_BASE,0x00b4) = 0x00000002;//c. set testclk high
+	HW_REG_WORD(MIPIDSI_BASE,0x00b8) = 0x00010000 | (reg_addr & 0xff); //d. LSB testdin
+	HW_REG_WORD(MIPIDSI_BASE,0x00b4) = 0x00000000;//e. set testclk low
+	read_data = HW_REG_WORD(MIPIDSI_BASE,0x00b8);
+	HW_REG_WORD(MIPIDSI_BASE,0x00b8) = 0x00000000;//f. testen_low
 
 	r_data_8 = (read_data >> 8) & 0xff;
 
@@ -435,31 +432,31 @@ void DSI_DPHY_REG_WRITE(uint16_t reg_addr,uint8_t write_data)
 	uint8_t r_data_8;
 
 	//1.
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b4) = 0x00000000;//a. testclk
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b8) = 0x00000000;//a. testen
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b8) = 0x00010000;//b. testen_high
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b4) = 0x00000002;//c. testclk high
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b8) = 0x00010000;//d. place testdin 0x00
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b4) = 0x00000000;//e. testclk low
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b8) = 0x00000000;//f. place testen low
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b8) = reg_addr >> 8;//g. MSB testdin
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b4) = 0x00000002;//h. set testclk high
+	HW_REG_WORD(MIPIDSI_BASE,0x00b4) = 0x00000000;//a. testclk
+	HW_REG_WORD(MIPIDSI_BASE,0x00b8) = 0x00000000;//a. testen
+	HW_REG_WORD(MIPIDSI_BASE,0x00b8) = 0x00010000;//b. testen_high
+	HW_REG_WORD(MIPIDSI_BASE,0x00b4) = 0x00000002;//c. testclk high
+	HW_REG_WORD(MIPIDSI_BASE,0x00b8) = 0x00010000;//d. place testdin 0x00
+	HW_REG_WORD(MIPIDSI_BASE,0x00b4) = 0x00000000;//e. testclk low
+	HW_REG_WORD(MIPIDSI_BASE,0x00b8) = 0x00000000;//f. place testen low
+	HW_REG_WORD(MIPIDSI_BASE,0x00b8) = reg_addr >> 8;//g. MSB testdin
+	HW_REG_WORD(MIPIDSI_BASE,0x00b4) = 0x00000002;//h. set testclk high
 
 	//2.
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b4) = 0x00000000;//a. testclk low
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b8) = 0x00010000 | (reg_addr >> 8);//b. testen_high
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b4) = 0x00000002;//c. set testclk high
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b8) = 0x00010000 | (reg_addr & 0xff); //d. LSB testdin
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b4) = 0x00000000;//e. set testclk low
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b8) = 0x00000000 | (reg_addr & 0xff);//b. testen_low
+	HW_REG_WORD(MIPIDSI_BASE,0x00b4) = 0x00000000;//a. testclk low
+	HW_REG_WORD(MIPIDSI_BASE,0x00b8) = 0x00010000 | (reg_addr >> 8);//b. testen_high
+	HW_REG_WORD(MIPIDSI_BASE,0x00b4) = 0x00000002;//c. set testclk high
+	HW_REG_WORD(MIPIDSI_BASE,0x00b8) = 0x00010000 | (reg_addr & 0xff); //d. LSB testdin
+	HW_REG_WORD(MIPIDSI_BASE,0x00b4) = 0x00000000;//e. set testclk low
+	HW_REG_WORD(MIPIDSI_BASE,0x00b8) = 0x00000000 | (reg_addr & 0xff);//b. testen_low
 
 	//3.
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b8) = write_data; //a.
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b4) = 0x00000002; //b. testclk high
+	HW_REG_WORD(MIPIDSI_BASE,0x00b8) = write_data; //a.
+	HW_REG_WORD(MIPIDSI_BASE,0x00b4) = 0x00000002; //b. testclk high
 
 	//turn off for clean exit
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b4) = 0x00000000;//a. testclk
-	HW_REG_WORD(mipi_dsi_base_addr,0x00b8) = 0x00000000;//a. testen
+	HW_REG_WORD(MIPIDSI_BASE,0x00b4) = 0x00000000;//a. testclk
+	HW_REG_WORD(MIPIDSI_BASE,0x00b8) = 0x00000000;//a. testen
 }
 
 

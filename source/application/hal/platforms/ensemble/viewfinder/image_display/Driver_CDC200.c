@@ -38,21 +38,18 @@
 
 #include <math.h>
 #include "display.h"
+#include "base_def.h"
 #include "Driver_CDC200.h"
 #include "RTE_Components.h"
 #include CMSIS_device_header
 
-#define HW_REG_WORD(base,offset) *((volatile uint32_t *) (base + offset))
-#define cdc_base_addr      0x49031000
-#define expslv1_base_addr  0x4903F000
-
 void display_controller_enable(uint8_t enable)
 {
 	if (enable)
-		HW_REG_WORD(cdc_base_addr,0x18) = 1;
+		HW_REG_WORD(CDC200_BASE,0x18) = 1;
 
 	else
-		HW_REG_WORD(cdc_base_addr,0x18) = 0;
+		HW_REG_WORD(CDC200_BASE,0x18) = 0;
 }
 
 /**
@@ -72,25 +69,25 @@ int32_t display_controller_setup (uint32_t image_buff_address, uint32_t image_fo
 	uint32_t pixel_clock = 60 * (HSA+HBP+HACT+HFP) * (VSA+VBP+VACT+VFP);
 	uint32_t divider = roundf((float)400000000 / (float)pixel_clock);
 
-	HW_REG_WORD(expslv1_base_addr,0x04) = (divider << 16) | 1;	// pixel clock = 400MHz / 14 = 28.57MHz
+	HW_REG_WORD(CFGSLV1_BASE,0x04) = (divider << 16) | 1;	// pixel clock = 400MHz / 14 = 28.57MHz
 
 	display_controller_enable(0);
 
-	HW_REG_WORD(cdc_base_addr,0x08) = (HSA-1)<<16 | (VSA-1);
-	HW_REG_WORD(cdc_base_addr,0x0C) = (HSA+HBP-1)<<16 | (VSA+VBP-1);
-	HW_REG_WORD(cdc_base_addr,0x10) = (HSA+HBP+HACT-1)<<16 | (VSA+VBP+VACT-1);
-	HW_REG_WORD(cdc_base_addr,0x14) = (HSA+HBP+HACT+HFP-1)<<16 | (VSA+VBP+VACT+VFP-1);
+	HW_REG_WORD(CDC200_BASE,0x08) = (HSA-1)<<16 | (VSA-1);
+	HW_REG_WORD(CDC200_BASE,0x0C) = (HSA+HBP-1)<<16 | (VSA+VBP-1);
+	HW_REG_WORD(CDC200_BASE,0x10) = (HSA+HBP+HACT-1)<<16 | (VSA+VBP+VACT-1);
+	HW_REG_WORD(CDC200_BASE,0x14) = (HSA+HBP+HACT+HFP-1)<<16 | (VSA+VBP+VACT+VFP-1);
 
-	HW_REG_WORD(cdc_base_addr,0x10C) = 0;
-	HW_REG_WORD(cdc_base_addr,0x110) = (HSA+HBP+HACT-1)<<16 | (HSA+HBP);
-	HW_REG_WORD(cdc_base_addr,0x114) = (VSA+VBP+VACT-1)<<16 | (VSA+VBP);
-	HW_REG_WORD(cdc_base_addr,0x11C) = 1;	// 0: 32-bit ARGB, 1: 24-bit RGB
-	HW_REG_WORD(cdc_base_addr,0x134) = image_buff_address;
-	HW_REG_WORD(cdc_base_addr,0x138) = (HACT*3)<<16 | ((HACT*3)+7);
-	HW_REG_WORD(cdc_base_addr,0x13C) = VACT;
-	HW_REG_WORD(cdc_base_addr,0x10C) = 1;
+	HW_REG_WORD(CDC200_BASE,0x10C) = 0;
+	HW_REG_WORD(CDC200_BASE,0x110) = (HSA+HBP+HACT-1)<<16 | (HSA+HBP);
+	HW_REG_WORD(CDC200_BASE,0x114) = (VSA+VBP+VACT-1)<<16 | (VSA+VBP);
+	HW_REG_WORD(CDC200_BASE,0x11C) = 1;	// 0: 32-bit ARGB, 1: 24-bit RGB
+	HW_REG_WORD(CDC200_BASE,0x134) = image_buff_address;
+	HW_REG_WORD(CDC200_BASE,0x138) = (HACT*3)<<16 | ((HACT*3)+7);
+	HW_REG_WORD(CDC200_BASE,0x13C) = VACT;
+	HW_REG_WORD(CDC200_BASE,0x10C) = 1;
 
-	HW_REG_WORD(cdc_base_addr,0x24) = 1;
+	HW_REG_WORD(CDC200_BASE,0x24) = 1;
 
 	return DRIVER_OK;
 }
